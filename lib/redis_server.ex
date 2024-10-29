@@ -6,6 +6,7 @@ defmodule RedisServer do
   use Application
 
   def start(_type, _args) do
+    :ets.new(:redis_db, [:set, :public, :named_table])
     Supervisor.start_link([{Task, fn -> RedisServer.listen() end}], strategy: :one_for_one)
   end
 
@@ -40,6 +41,7 @@ defmodule RedisServer do
 
   defp parse({message, socket}) do
     { Parser.parse(String.split(message, "\r\n")), socket }
+    |> IO.inspect
   end
 
   defp write_response({:error, msg}) do
@@ -47,7 +49,6 @@ defmodule RedisServer do
   end
 
   defp write_response({response, socket}) do
-    IO.inspect(response)
     :gen_tcp.send(socket, response)
   end
 

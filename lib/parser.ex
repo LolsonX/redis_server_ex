@@ -4,12 +4,12 @@ defmodule Parser do
       %{type: :array} -> parse(message)
       %{type: :bulk_string} ->
         [command | params] = message
-        IO.inspect(command)
+        IO.inspect("Command " <> command)
         case command  do
           "PING" -> "+PONG\r\n"
           "ECHO" -> handle_echo(params)
           "SET" -> handle_set(params)
-          "GET" -> "+OK\r\n"
+          "GET" -> handle_get(params)
           _ -> parse(message)
         end
       _ -> ["+#{current_line}\r\n"] ++ Enum.join(message, "\r\n")
@@ -27,9 +27,23 @@ defmodule Parser do
   defp handle_set(message) do
     arg1 = Enum.at(message, 1)
     arg2 = Enum.at(message, 3)
-    IO.inspect(arg1)
-    IO.inspect(arg2)
+    :ets.insert(:redis_db, {arg1, arg2})
     "+OK\r\n"
+  end
+
+  defp handle_get(message) do
+    arg1 = Enum.at(message, 1)
+    :ets.lookup(:redis_db, arg1)
+          |> Enum.at(0)
+          |> generate_get_response()
+  end
+
+  defp generate_get_response({_key, value}) do
+    "$#{length(String.to_charlist(value))}\r\n#{value}\r\n"
+  end
+
+  defp generate_get_response(nil) do
+    "$-1\r\n"
   end
 
   defp parse_line(<<"*", args>>) do
