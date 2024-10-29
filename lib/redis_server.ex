@@ -41,7 +41,6 @@ defmodule RedisServer do
 
   defp parse({message, socket}) do
     { Parser.parse(String.split(message, "\r\n")), socket }
-    |> IO.inspect
   end
 
   defp write_response({:error, msg}) do
