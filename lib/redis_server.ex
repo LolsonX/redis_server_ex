@@ -15,6 +15,7 @@ defmodule RedisServer do
   """
   def listen() do
     {:ok, socket} = :gen_tcp.listen(6379, [:binary, active: false, reuseaddr: true])
+    IO.puts "Started server on port 6379"
     accept(socket)
   end
 
@@ -31,6 +32,7 @@ defmodule RedisServer do
     client
     |> read_command
     |> parse
+    |> handle_command
     |> write_response
     handle_client(client)
   end
@@ -41,6 +43,14 @@ defmodule RedisServer do
 
   defp parse({message, socket}) do
     { Parser.parse(String.split(message, "\r\n")), socket }
+  end
+
+  defp handle_command({:error, msg}) do
+    {:error, msg}
+  end
+
+  defp handle_command({command, socket}) do
+    { CommandHandler.handle(command), socket }
   end
 
   defp write_response({:error, msg}) do
