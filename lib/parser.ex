@@ -27,13 +27,13 @@ defmodule Parser do
   defp handle_set(message) do
     arg1 = Enum.at(message, 1)
     arg2 = Enum.at(message, 3)
-    :ets.insert(:redis_db, {arg1, arg2})
+    :dets.insert(:redis_db, {arg1, arg2})
     "+OK\r\n"
   end
 
   defp handle_get(message) do
     arg1 = Enum.at(message, 1)
-    :ets.lookup(:redis_db, arg1)
+    :dets.lookup(:redis_db, arg1)
           |> Enum.at(0)
           |> generate_get_response()
   end

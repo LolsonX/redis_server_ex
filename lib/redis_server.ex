@@ -6,7 +6,7 @@ defmodule RedisServer do
   use Application
 
   def start(_type, _args) do
-    :ets.new(:redis_db, [:set, :public, :named_table])
+    {:ok, _table} = :dets.open_file(:redis_db, [type: :set, file: String.to_atom("redis.dets")] )
     Supervisor.start_link([{Task, fn -> RedisServer.listen() end}], strategy: :one_for_one)
   end
 
